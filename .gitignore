@@ -20,3 +20,19 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+
+# python
+__pycache__/
+*.pyc
+
+# isaacsim
+logs/
+videos/
+*.usd.cache
+
+# env
+.venv/
+.env/
+
+# system
+.DS_Store

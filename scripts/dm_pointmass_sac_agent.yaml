@@ -1,0 +1,30 @@
+agent_name: "SAC"
+
+model:
+  actor_net: "fc_2layers_64units"
+  critic_net: "fc_2layers_64units"
+  actor_init_output_scale: 0.01
+  logstd_min: -5.0
+  logstd_max: 1.0
+
+actor_optimizer:
+  type: "Adam"
+  learning_rate: 3e-4
+
+critic_optimizer:
+  type: "Adam"
+  learning_rate: 3e-4
+
+discount: 0.99
+steps_per_iter: 200
+iters_per_output: 10
+test_episodes: 10
+
+exp_buffer_size: 100000
+batch_size: 256
+init_samples: 5000
+updates_per_iter: 20
+actor_update_interval: 1
+target_update_interval: 1
+tau: 0.005
+alpha: 0.1

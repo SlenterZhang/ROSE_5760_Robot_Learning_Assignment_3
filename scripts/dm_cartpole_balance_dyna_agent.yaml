@@ -1,0 +1,40 @@
+agent_name: "DYNA"
+
+model:
+  actor_net: "fc_2layers_64units"
+  critic_net: "fc_2layers_64units"
+  actor_init_output_scale: 0.01
+  logstd_min: -5.0
+  logstd_max: 1.0
+
+dynamics_model:
+  dyn_net: "fc_2layers_64units"
+
+actor_optimizer:
+  type: "Adam"
+  learning_rate: 3e-4
+
+critic_optimizer:
+  type: "Adam"
+  learning_rate: 3e-4
+
+dynamics_optimizer:
+  type: "Adam"
+  learning_rate: 1e-3
+
+discount: 0.99
+steps_per_iter: 100
+iters_per_output: 10
+test_episodes: 10
+
+exp_buffer_size: 50000
+model_buffer_size: 50000
+batch_size: 256
+init_samples: 2000
+updates_per_iter: 20
+dyn_updates_per_iter: 50
+rollout_horizon: 1
+model_rollouts_per_iter: 64
+real_ratio: 0.8
+tau: 0.005
+alpha: 0.05

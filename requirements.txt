@@ -1,0 +1,7 @@
+dm_control
+gymnasium[atari,accept-rom-license]
+opencv-python
+pygame>=2.3.0
+pyyaml
+tensorboardX
+imageio
