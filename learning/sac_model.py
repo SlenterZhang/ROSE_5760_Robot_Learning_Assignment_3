@@ -28,6 +28,16 @@ class SACModel(base_model.BaseModel):
         # mean, log_std
         # sample using reparameterization, if NOT deterministic, else, deterministic output
         # tanh squash    
+        dist = D.Normal(mean, std)
+        if deterministic:
+            z = mean
+        else:
+            z = dist.rsample()
+        norm_action = torch.tanh(z)
+
+        logp = dist.log_prob(z).sum(dim=-1)
+        logp -= torch.sum(torch.log(1 - norm_action.pow(2) + 1e-6), dim=-1)
+        
         return norm_action, logp, torch.tanh(mean)
 
     def eval_q1(self, obs, norm_action):

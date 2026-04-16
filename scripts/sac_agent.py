@@ -122,6 +122,25 @@ class SACAgent(base_agent.BaseAgent):
         # mse(Q1, target)
         # mse(Q2, target)
 
+        pred_q1 = self._model.eval_q1(norm_obs, norm_action).squeeze(-1)
+        pred_q2 = self._model.eval_q2(norm_obs, norm_action).squeeze(-1)
+
+        with torch.no_grad():
+            # next action
+            next_action, next_logp, _ = self._model.sample_action(norm_next_obs, deterministic=False)
+
+            # target Q
+            target_q1 = self._tar_model.eval_q1(norm_next_obs, next_action).squeeze(-1)
+            target_q2 = self._tar_model.eval_q2(norm_next_obs, next_action).squeeze(-1)
+
+            target_q = torch.min(target_q1, target_q2) - self._alpha * next_logp
+
+            target = reward + self._discount * (1.0 - done) * target_q
+
+        q1_loss = torch.mean((pred_q1 - target) ** 2)
+        q2_loss = torch.mean((pred_q2 - target) ** 2)
+
+
         return {
             "critic_loss": q1_loss + q2_loss,
             "q1_loss": q1_loss.detach(),
@@ -134,6 +153,14 @@ class SACAgent(base_agent.BaseAgent):
     def _compute_actor_loss(self, batch):
         # TODO:
         # maximize Q - alpha * entropy
+        norm_obs = self._obs_norm.normalize(batch["obs"])
+        norm_action, logp, _ = self._mode.sample_action(norm_obs, deterministic=False)
+
+        q1 = self._model.eval_q1(norm_obs, norm_action).squeeze(-1)
+        q2 = self._model.eval_q2(norm_obs, norm_action).squeeze(-1)
+        q = torch.min(q1, q2)
+
+        actor_loss = torch.mean(self._alpha * logp - q)
 
         return {
             "actor_loss": actor_loss,
@@ -149,4 +176,6 @@ class SACAgent(base_agent.BaseAgent):
     def _soft_sync_target(self):
         # TODO:
         # target = tau * online + (1-tau) * target        
+        for src, tar in zip(self._model.parameters(), self._tar_model.parameters()):
+            tar.data.copy_(self._tau * src.data + (1 - self._tau) * tar.data)
         return

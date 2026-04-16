@@ -1,8 +1,5 @@
 import yaml
 
-import scripts.cem_agent as cem_agent
-import scripts.pg_agent as pg_agent
-import scripts.dqn_agent as dqn_agent
 import scripts.ppo_agent as ppo_agent
 import scripts.sac_agent as sac_agent
 import scripts.dyna_agent as dyna_agent
@@ -14,13 +11,7 @@ def build_agent(agent_file, env, device):
     agent_name = agent_config["agent_name"]
     print("Building {} agent".format(agent_name))
 
-    if (agent_name == cem_agent.CEMAgent.NAME):
-        agent = cem_agent.CEMAgent(config=agent_config, env=env, device=device)
-    elif (agent_name == pg_agent.PGAgent.NAME):
-        agent = pg_agent.PGAgent(config=agent_config, env=env, device=device)
-    elif (agent_name == dqn_agent.DQNAgent.NAME):
-        agent = dqn_agent.DQNAgent(config=agent_config, env=env, device=device) 
-    elif (agent_name == ppo_agent.PPOAgent.NAME):
+    if (agent_name == ppo_agent.PPOAgent.NAME):
         agent = ppo_agent.PPOAgent(config=agent_config, env=env, device=device)
     elif (agent_name == sac_agent.SACAgent.NAME):
         agent = sac_agent.SACAgent(config=agent_config, env=env, device=device)

@@ -4,7 +4,7 @@ model:
   actor_net: "fc_2layers_64units"
   actor_init_output_scale: 0.01
   actor_std_type: "FIXED"
-  action_std: 0.4
+  action_std: 0.6        # Add exploration
   critic_net: "fc_2layers_64units"
 
 actor_optimizer:
@@ -13,7 +13,7 @@ actor_optimizer:
 
 critic_optimizer:
   type: "Adam"
-  learning_rate: 1e-3
+  learning_rate: 3e-4    # Decrease critic learning rate
 
 discount: 0.99
 steps_per_iter: 2048
@@ -22,9 +22,11 @@ test_episodes: 10
 
 batch_size: 256
 update_epochs: 10
-clip_eps: 0.2
+clip_eps: 0.15           # Stable
 gae_lambda: 0.95
 critic_coef: 0.5
-entropy_coef: 0.0
+
+entropy_coef: 0.01       # Add exploration
+
 norm_adv_clip: 5.0
 action_bound_weight: 0.0

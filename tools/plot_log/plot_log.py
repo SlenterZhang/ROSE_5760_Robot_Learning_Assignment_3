@@ -9,7 +9,7 @@ sys.path.append(os.getcwd())
 import tools.util.plot_util as plot_util
 
 files = [
-    "output/xxx_log.txt",
+    "output/pointmass_ppo_log.txt",
 ]
 
 draw_band = True

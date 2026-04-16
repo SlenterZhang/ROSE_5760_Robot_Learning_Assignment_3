@@ -153,11 +153,19 @@ class PPOAgent(base_agent.BaseAgent):
         last_gae = torch.zeros([], device=self._device)
 
         # TODO: implement GAE
+        for t in reversed(range(T)):
+            not_done = 1.0 - done[t].float()
+            delta = reward[t] + self._discount * next_value[t] * not_done - value[t]
+            last_gae = delta + self._discount * self._gae_lambda * not_done * last_gae
+            adv[t] = last_gae
+            ret[t] = adv[t] + value[t]
 
         return adv, ret
 
     def _calc_critic_loss(self, norm_obs, ret):
         # TODO: MSE 
+        value = self._model.eval_critic(norm_obs).squeeze(-1)
+        critic_loss = torch.mean((value - ret) ** 2)
 
         return critic_loss
 
@@ -166,6 +174,17 @@ class PPOAgent(base_agent.BaseAgent):
         # ratio = exp(logp - old_logp)
         # clipped ratio
         # min(...)
+        a_dist = self._model.eval_actor(norm_obs)
+        logp = a_dist.log_prob(norm_action)
+        ratio = torch.exp(logp - old_logp)
+        clipped_ratio = torch.clamp(ratio, 1.0 - self._clip_eps, 1.0 + self._clip_eps)
+
+        surr1 = ratio * adv
+        surr2 = clipped_ratio * adv
+        actor_loss = -torch.mean(torch.min(surr1, surr2))
+
+        entropy = torch.mean(a_dist.entropy())
+        loss = actor_loss - self._entropy_coef * entropy
 
         return {
             "actor_loss": loss,
