@@ -154,8 +154,7 @@ class SACAgent(base_agent.BaseAgent):
         # TODO:
         # maximize Q - alpha * entropy
         norm_obs = self._obs_norm.normalize(batch["obs"])
-        norm_action, logp, _ = self._mode.sample_action(norm_obs, deterministic=False)
-
+        norm_action, logp, _ = self._model.sample_action(norm_obs, deterministic=False)
         q1 = self._model.eval_q1(norm_obs, norm_action).squeeze(-1)
         q2 = self._model.eval_q2(norm_obs, norm_action).squeeze(-1)
         q = torch.min(q1, q2)

@@ -5,7 +5,7 @@ model:
   critic_net: "fc_2layers_64units"
   actor_init_output_scale: 0.01
   logstd_min: -5.0
-  logstd_max: 1.0
+  logstd_max: 2.0      # broad exploration
 
 actor_optimizer:
   type: "Adam"
@@ -22,9 +22,10 @@ test_episodes: 10
 
 exp_buffer_size: 100000
 batch_size: 256
-init_samples: 5000
-updates_per_iter: 20
+init_samples: 2000        # Faster learning
+updates_per_iter: 50      # Higher sample efficiency
 actor_update_interval: 1
 target_update_interval: 1
+
 tau: 0.005
-alpha: 0.1
+alpha: 0.2                # Improve exploration
