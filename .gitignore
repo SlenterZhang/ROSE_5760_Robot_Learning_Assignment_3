@@ -36,3 +36,6 @@ videos/
 
 # system
 .DS_Store
+
+# Tensorboard related
+events.*
