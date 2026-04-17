@@ -132,6 +132,14 @@ class DYNAAgent(base_agent.BaseAgent):
         
         # TODO:
         # loss = mse(predicted next state, true next state)
+
+        pred_delta, pred_reward = self._dyn_model(norm_obs, norm_action)
+        true_delta = batch["next_obs"] - batch["obs"]
+        true_reward = batch["reward"].squeeze(-1) if batch["reward"].ndim > 1 else batch["reward"]
+        pred_reward = pred_reward.squeeze(-1) if pred_reward.ndim > 1 else pred_reward
+
+        delta_loss = torch.mean((pred_delta - true_delta) ** 2)
+        reward_loss = torch.mean((pred_reward - true_reward) ** 2)
         
         dyn_loss = delta_loss + reward_loss
         self._dyn_optimizer.step(dyn_loss)
@@ -158,6 +166,15 @@ class DYNAAgent(base_agent.BaseAgent):
                 # sample real states
                 # rollout using learned model
                 # store synthetic transitions
+
+                norm_action, _, _ = self._model.sample_action(norm_obs, deterministic=False)
+                action = self._a_norm.unnormalize(norm_action)
+                action = torch.clamp(action, min=a_low, max=a_high)
+
+                pred_delta, pred_reward = self._dyn_model(norm_obs, norm_action)
+                next_obs = obs + pred_delta
+                pred_reward = pred_reward.squeeze(-1) if pred_reward.ndim > 1 else pred_reward
+
                 done = torch.full([obs.shape[0]], base_env.DoneFlags.NULL.value, device=self._device, dtype=torch.int)
 
             for i in range(obs.shape[0]):
@@ -184,6 +201,11 @@ class DYNAAgent(base_agent.BaseAgent):
         model_batch = self._model_buffer.sample(model_n)
         batch = {} 
         # TODO: mix real + model data
+        for k in real_batch.keys():
+            if k in model_batch:
+                batch[k] = torch.cat([real_batch[k], model_batch[k]], dim=0)
+            else:
+                batch[k] = real_batch[k]
         return batch
 
     def _update_critic(self, batch):
@@ -206,6 +228,18 @@ class DYNAAgent(base_agent.BaseAgent):
         # TODO:
         # mse(Q1, target)
         # mse(Q2, target)
+        pred_q1 = self._model.eval_q1(norm_obs, norm_action).squeeze(-1)
+        pred_q2 = self._model.eval_q2(norm_obs, norm_action).squeeze(-1)
+
+        with torch.no_grad():
+            next_action, next_logp, _ = self._model.sample_action(norm_next_obs, deterministic=False)
+            target_q1 = self._tar_model.eval_q1(norm_next_obs, next_action).squeeze(-1)
+            target_q2 = self._tar_model.eval_q2(norm_next_obs, next_action).squeeze(-1)
+            target_q = torch.min(target_q1, target_q2) - self._alpha * next_logp
+            target = reward + self._discount * (1.0 - done) * target_q
+
+        q1_loss = torch.mean((pred_q1 - target) ** 2)
+        q2_loss = torch.mean((pred_q2 - target) ** 2)
 
         return {
             "critic_loss": q1_loss + q2_loss,
@@ -218,6 +252,15 @@ class DYNAAgent(base_agent.BaseAgent):
 
     def _compute_actor_loss(self, batch):
         # TODO: actor loss 
+        norm_obs = self._obs_norm.normalize(batch["obs"])
+
+        norm_action, logp, _ = self._model.sample_action(norm_obs, deterministic=False)
+        q1 = self._model.eval_q1(norm_obs, norm_action).squeeze(-1)
+        q2 = self._model.eval_q2(norm_obs, norm_action).squeeze(-1)
+        q = torch.min(q1, q2)
+
+        actor_loss = torch.mean(self._alpha * logp - q)
+
 
         return {
             "actor_loss": actor_loss,
@@ -232,5 +275,7 @@ class DYNAAgent(base_agent.BaseAgent):
 
     def _soft_sync_target(self):
         # TODO:
-        # target = tau * online + (1-tau) * target            
+        # target = tau * online + (1-tau) * target     
+        for src, tar in zip(self._model.parameters(), self._tar_model.parameters()):
+            tar.data.copy_(self._tau * src.data + (1.0 - self._tau) * tar.data)       
         return
