@@ -86,6 +86,14 @@ class BCDAggerAgent(base_agent.BaseAgent):
 
         # TODO: aggregrate the dataset 
 
+        if self._iter < self._bc_pretrain_iters:
+            action = expert_action
+        else:
+            if np.random.rand() < self._dagger_teacher_prob:
+                action = expert_action
+            else:
+                action = self._student_action(obs=obs)
+
         action_info = {"expert_action": expert_action}
         return action, action_info
 
@@ -140,6 +148,25 @@ class BCDAggerAgent(base_agent.BaseAgent):
 
     def _calc_bc_loss(self, norm_obs, norm_expert_action):
         # TODO: implement max likelihood loss loss 
+
+        a_dist = self._model.eval_actor(norm_obs)
+        logp = a_dist.log_prob(norm_expert_action)
+
+        if logp.ndim > 1:
+            logp = logp.sum(dim=-1)
+        
+        nll = -torch.mean(logp)
+
+        entropy = torch.mean(a_dist.entropy())
+        if entropy.ndim > 0:
+            entropy = torch.mean(entropy)
+
+        loss = nll - self._entropy_coef * entropy
+
+        # MSE
+        pred_action = a_dist.mode
+        mse = torch.mean((pred_action - norm_expert_action) ** 2)
+        
         return {
             "loss": loss,
             "bc_nll": nll.detach(),
