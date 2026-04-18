@@ -53,4 +53,4 @@ teacher_agent_config:
   entropy_coef: 0.0
   norm_adv_clip: 5.0
   action_bound_weight: 0.0
-teacher_model_file: "output/ppo_model.pt"
+teacher_model_file: "output/pointmass_ppo_model.pt"
