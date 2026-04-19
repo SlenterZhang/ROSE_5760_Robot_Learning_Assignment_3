@@ -19,14 +19,14 @@ test_episodes: 10
 exp_buffer_size: 20000
 batch_size: 256
 update_epochs: 20
-bc_pretrain_iters: 5
-dagger_teacher_prob: 0.0
-dagger_teacher_prob_decay: 1.0
+
+bc_pretrain_iters: 10
+dagger_teacher_prob: 0.5
+dagger_teacher_prob_decay: 0.95
+
 entropy_coef: 0.0
 action_bound_weight: 0.0
 
-# IMPORTANT:
-# Replace these with the actual PPO teacher config and checkpoint paths.
 teacher_agent_config:
   agent_name: "PPO"
   model:
@@ -53,4 +53,5 @@ teacher_agent_config:
   entropy_coef: 0.0
   norm_adv_clip: 5.0
   action_bound_weight: 0.0
+
 teacher_model_file: "output/pointmass_ppo_model.pt"
