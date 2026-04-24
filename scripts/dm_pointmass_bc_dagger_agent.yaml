@@ -13,16 +13,16 @@ optimizer:
 
 discount: 0.99
 steps_per_iter: 200
-iters_per_output: 10
-test_episodes: 10
+iters_per_output: 5
+test_episodes: 20
 
-exp_buffer_size: 20000
+exp_buffer_size: 50000
 batch_size: 256
-update_epochs: 20
+update_epochs: 30
 
-bc_pretrain_iters: 10
-dagger_teacher_prob: 0.5
-dagger_teacher_prob_decay: 0.95
+bc_pretrain_iters: 15
+dagger_teacher_prob: 0.7
+dagger_teacher_prob_decay: 0.98
 
 entropy_coef: 0.0
 action_bound_weight: 0.0
