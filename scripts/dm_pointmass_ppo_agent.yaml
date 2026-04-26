@@ -11,7 +11,7 @@ actor_optimizer:
   type: "Adam"
   learning_rate: 3e-4
 
-critic_optimizer:
+critic_optimizer:3
   type: "Adam"
   learning_rate: 3e-4    # Decrease critic learning rate
 

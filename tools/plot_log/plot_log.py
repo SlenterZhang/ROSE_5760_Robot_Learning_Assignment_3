@@ -8,14 +8,18 @@ sys.path.append(os.getcwd())
 
 import tools.util.plot_util as plot_util
 
-files = [
-    "output/bc_dagger_log.txt",
-]
+# files = ["output/dyna_log.txt"]
+files = ["output/bc_dagger_log.txt"]
+# files = ["output/pointmass_ppo_log.txt"]
+# files = ["output/pointmass_sac_log.txt"]
 
 draw_band = True
 x_key = "Samples"
 y_key = "Test_Return"
-plot_title = "Title"
+plot_title = "BC DAgger plot"
+# plot_title = "PPO plot"
+# plot_title = "Dyna plot"
+# plot_title = "sac plot"
 std_key = None
 
 def filter_data(x, window_size):
